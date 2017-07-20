@@ -3,15 +3,19 @@ import psycopg2
 
 
 def main():
+    '''Run functions to log database statistics.
+    '''
     conn = psycopg2.connect(dbname='news')
     create_article_views(conn)
     print_popular_articles(conn)
-    print_popular_authors(conn)
+    print_author_popularity(conn)
     print_high_error_days(conn)
     conn.close()
 
 
 def print_popular_articles(conn):
+    '''Print three most viewed articles in database.
+    '''
     cur = conn.cursor()
     cur.execute("""
         SELECT title, COUNT(title)
@@ -26,7 +30,9 @@ def print_popular_articles(conn):
     cur.close()
 
 
-def print_popular_authors(conn):
+def print_author_popularity(conn):
+    '''Print authors in database in order of popularity.
+    '''
     cur = conn.cursor()
     cur.execute("""
         SELECT author, COUNT(author)
@@ -41,6 +47,8 @@ def print_popular_authors(conn):
 
 
 def print_high_error_days(conn):
+    '''Print all days in database which had HTTP error rates higher that 1%.
+    '''
     cur = conn.cursor()
     cur.execute("""
         SELECT
@@ -74,6 +82,9 @@ def print_high_error_days(conn):
 
 
 def create_article_views(conn):
+    '''Create temporary view called 'article_views' to display all requests
+    with associated article title and author name.
+    '''
     cur = conn.cursor()
     cur.execute('''
         CREATE TEMP VIEW article_views AS
