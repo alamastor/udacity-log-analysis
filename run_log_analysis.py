@@ -14,10 +14,10 @@ def main():
 def print_popular_articles(conn):
     cur = conn.cursor()
     cur.execute("""
-        SELECT title, count(title)
+        SELECT title, COUNT(title)
         FROM article_views
         GROUP BY title
-        ORDER BY count(title) DESC
+        ORDER BY COUNT(title) DESC
         """)
     print('\nMost Popular Articles:')
     for i in range(3):
@@ -29,10 +29,10 @@ def print_popular_articles(conn):
 def print_popular_authors(conn):
     cur = conn.cursor()
     cur.execute("""
-        SELECT author, count(author)
+        SELECT author, COUNT(author)
         FROM article_views
         GROUP BY author
-        ORDER BY count(author) DESC
+        ORDER BY COUNT(author) DESC
         """)
     print('\nMost Popular Authors:')
     for i, res in enumerate(cur.fetchall()):
@@ -48,18 +48,20 @@ def print_high_error_days(conn):
             AS error_percent,
             daily_queries.day
         FROM (
-            SELECT date_trunc('day', time) as day, count(date_trunc('day', time))
+            SELECT
+                DATE_TRUNC('day', time) AS day, COUNT(DATE_TRUNC('day', time))
             FROM log
             WHERE method = 'GET'
             GROUP BY date_trunc('day', time)
         ) AS daily_queries
         JOIN
         (
-            SELECT date_trunc('day', time) as day, count(date_trunc('day', time))
+            SELECT
+                DATE_TRUNC('day', time) AS day, COUNT(DATE_TRUNC('day', time))
             FROM log
             WHERE
-            method = 'GET' AND status != '200 OK'
-            GROUP BY date_trunc('day', time)
+                method = 'GET' AND status != '200 OK'
+            GROUP BY DATE_TRUNC('day', time)
         ) AS daily_errors
         ON daily_queries.day = daily_errors.day
         WHERE daily_errors.count / daily_queries.count::float >= 0.01
@@ -75,12 +77,10 @@ def create_article_views(conn):
     cur = conn.cursor()
     cur.execute('''
         CREATE TEMP VIEW article_views AS
-        SELECT au.name as author, a.title as title, l.time as access_time
-        FROM
-        articles as a JOIN log as l ON l.path LIKE '/article/'||a.slug
-        JOIN authors as au ON a.author = au.id
-        WHERE
-        l.method = 'GET'AND l.status = '200 OK'
+        SELECT au.name AS author, a.title AS title, l.time AS access_time
+        FROM articles AS a JOIN log AS l ON l.path LIKE '/article/'||a.slug
+        JOIN authors AS au ON a.author = au.id
+        WHERE l.method = 'GET'AND l.status = '200 OK'
     ''')
     conn.commit()
     cur.close()
