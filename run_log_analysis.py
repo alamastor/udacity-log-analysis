@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+'''Script to print out various statistics from news database.
+'''
+
 import psycopg2
 
 
